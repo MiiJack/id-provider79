@@ -1,0 +1,13 @@
+extends layout
+
+block content
+    h1= title
+    p Welcome #{email}
+    button#logoutBtn Logout
+
+    script.
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', () => {
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/';
+        });

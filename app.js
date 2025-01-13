@@ -3,6 +3,10 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var admin = require('firebase-admin');
+var firebaseConfig = require('./config/firebaseConfig');
+
+admin.initializeApp(firebaseConfig);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -19,8 +23,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const authenticateUser = async (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.redirect('/');
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    res.redirect('/');
+  }
+};
+
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', authenticateUser, usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
